@@ -65,7 +65,7 @@ export default function App() {
 
         })}>
         <Tab.Screen name="Audio" component={AudioGuessScreen} options={{ title: 'Audio Chord Trainer' }} />
-        <Tab.Screen name="Pattern" component={PatternGuessScreen} options={{ title: 'Chord Pattern Trainer' }} />
+        <Tab.Screen name="Pattern" component={PatternGuessScreen} options={{ title: 'Chord Sense' }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

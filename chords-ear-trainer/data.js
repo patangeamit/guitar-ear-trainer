@@ -1,19 +1,47 @@
 export const chordPatternsByDifficulty = {
   Easy: [
+    { name: 'A', image: require('./assets/chords/A.png') },
+    { name: 'B', image: require('./assets/chords/B.png') },
     { name: 'C', image: require('./assets/chords/C.png') },
-    { name: 'G', image: require('./assets/chords/G.png') },
-    { name: 'Am', image: require('./assets/chords/Am.png') },
-    
-    { name: 'F', image: require('./assets/chords/F.png') },
-  ],
-  Medium: [ 
     { name: 'D', image: require('./assets/chords/D.png') },
-    { name: 'Em', image: require('./assets/chords/Em.png') },
+    { name: 'E', image: require('./assets/chords/E.png') },
     { name: 'F', image: require('./assets/chords/F.png') },
+    { name: 'G', image: require('./assets/chords/G.png') },
+    
+    { name: 'Am', image: require('./assets/chords/Am.png') },
+    { name: 'Bm', image: require('./assets/chords/Bm.png') },
+    { name: 'Cm', image: require('./assets/chords/Cm.png') },
+    { name: 'Dm', image: require('./assets/chords/Dm.png') },
+    { name: 'Em', image: require('./assets/chords/Em.png') },
+    { name: 'Fm', image: require('./assets/chords/Fm.png') },
+    { name: 'Gm', image: require('./assets/chords/Gm.png') },
   ],
-  Hard: [   
-    { name: 'Bm', image: require('./assets/chords/C.png') },
-    { name: 'E7', image: require('./assets/chords/G.png') },
-    { name: 'G#m', image: require('./assets/chords/Am.png') },
+  Medium: [
+    { name: 'Am', image: require('./assets/chords/Am.png') },
+    { name: 'Bm', image: require('./assets/chords/Bm.png') },
+    { name: 'Cm', image: require('./assets/chords/Cm.png') },
+    { name: 'Dm', image: require('./assets/chords/Dm.png') },
+    { name: 'Em', image: require('./assets/chords/Em.png') },
+    { name: 'Fm', image: require('./assets/chords/Fm.png') },
+    { name: 'Gm', image: require('./assets/chords/Gm.png') },
+    
+    { name: 'B7', image: require('./assets/chords/B7.png') },
+    { name: 'F#m', image: require('./assets/chords/FsharpM.png') },
+    { name: 'C#m', image: require('./assets/chords/CsharpM.png') },
+    { name: 'G#', image: require('./assets/chords/Gsharp.png') },
+    { name: 'Amaj7', image: require('./assets/chords/Amaj7.png') },
+    { name: 'Dmaj7', image: require('./assets/chords/Dmaj7.png') },
+    { name: 'Bm7', image: require('./assets/chords/Bm7.png') },
+    { name: 'F#maj7', image: require('./assets/chords/FsharpMaj7.png') },
   ],
-};  
+  Hard: [
+    { name: 'B7', image: require('./assets/chords/B7.png') },
+    { name: 'F#m', image: require('./assets/chords/FsharpM.png') },
+    { name: 'C#m', image: require('./assets/chords/CsharpM.png') },
+    { name: 'G#', image: require('./assets/chords/Gsharp.png') },
+    { name: 'Amaj7', image: require('./assets/chords/Amaj7.png') },
+    { name: 'Dmaj7', image: require('./assets/chords/Dmaj7.png') },
+    { name: 'Bm7', image: require('./assets/chords/Bm7.png') },
+    { name: 'F#maj7', image: require('./assets/chords/FsharpMaj7.png') },
+  ],
+};   

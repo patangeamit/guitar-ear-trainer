@@ -6,9 +6,14 @@ import {
   StyleSheet,
   Image,
   Animated,
-  ScrollView
-} from 'react-native'; 
-import {chordPatternsByDifficulty} from '../data';
+  ScrollView,
+  Dimensions,
+} from 'react-native';
+import { chordPatternsByDifficulty } from '../data';
+
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+const horizontalMargin = 20; // adjust however fancy you feel
 
 export default function PatternGuessScreen() {
   const [currentChord, setCurrentChord] = useState(null);
@@ -17,7 +22,33 @@ export default function PatternGuessScreen() {
   const [clickedOption, setClickedOption] = useState(null);
   const [score, setScore] = useState(0);
 
-const chordPatterns = chordPatternsByDifficulty[selectedDifficulty];
+  const chordPatterns = chordPatternsByDifficulty[selectedDifficulty];
+
+  // inside component
+  const [imgHeight, setImgHeight] = useState(null);
+
+  useEffect(() => {
+    if (!currentChord) return;
+
+    try {
+      const src = Image.resolveAssetSource(currentChord.image);
+      if (src && src.width && src.height) {
+        const displayW = screenWidth - horizontalMargin * 2;
+        const h = Math.min(
+          screenHeight * 0.3,
+          Math.round(displayW * (src.height / src.width))
+        );
+        setImgHeight(h);
+        return;
+      }
+    } catch (err) {
+      // Web fallback – since resolveAssetSource isn't supported
+    }
+
+    // fallback height (web or failure)
+    setImgHeight(screenHeight * 0.25);
+  }, [currentChord]);
+
   // Animated values for each option
   const optionShake = useRef(
     chordPatterns.map(() => new Animated.Value(0))
@@ -29,25 +60,25 @@ const chordPatterns = chordPatternsByDifficulty[selectedDifficulty];
   useEffect(() => {
     generateNewQuestion();
   }, []);
-    
-function generateNewQuestion() {
-  const patterns = chordPatternsByDifficulty[selectedDifficulty]; // ✅ Get based on difficulty
-  let randomChord;
-  do {
-    randomChord = patterns[Math.floor(Math.random() * patterns.length)];
-  } while (currentChord && randomChord.name === currentChord.name);
 
-  setCurrentChord(randomChord);
+  function generateNewQuestion() {
+    const patterns = chordPatternsByDifficulty[selectedDifficulty]; // ✅ Get based on difficulty
+    let randomChord;
+    do {
+      randomChord = patterns[Math.floor(Math.random() * patterns.length)];
+    } while (currentChord && randomChord.name === currentChord.name);
 
-  const shuffled = [...patterns].sort(() => 0.5 - Math.random()).slice(0, 4);
-  if (!shuffled.includes(randomChord)) shuffled[0] = randomChord;
-  setOptions(shuffled.sort(() => 0.5 - Math.random()));
+    setCurrentChord(randomChord);
 
-  setClickedOption(null);
-}
-useEffect(() => {
-  generateNewQuestion();
-}, [selectedDifficulty]); // ✅ Runs whenever difficulty changes
+    const shuffled = [...patterns].sort(() => 0.5 - Math.random()).slice(0, 4);
+    if (!shuffled.includes(randomChord)) shuffled[0] = randomChord;
+    setOptions(shuffled.sort(() => 0.5 - Math.random()));
+
+    setClickedOption(null);
+  }
+  useEffect(() => {
+    generateNewQuestion();
+  }, [selectedDifficulty]); // ✅ Runs whenever difficulty changes
 
   function handleOptionClick(selected, index) {
     if (!clickedOption) {
@@ -128,64 +159,78 @@ useEffect(() => {
 
       {/* Score Display */}
       <Text style={styles.scoreText}>Score: {score}</Text>
-<ScrollView>
-      {/* Main Content */}
-      <View style={styles.content}>
-        {currentChord && (
-          <Image source={currentChord.image} style={styles.chordImage} />
-        )}
-        <View style={styles.optionsContainer}>
-          {options.map((opt, index) => {
-            const isClicked = clickedOption === opt.name;
-            const isCorrect = opt.name === currentChord?.name;
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          alignItems: 'center',
+          width: '100%',
+        }}>
+        {/* Main Content */}
+        <View style={styles.content}>
+          {currentChord && (
+            <Image
+              source={currentChord.image}
+              style={[
+                styles.chordImage,
+                imgHeight ? { height: imgHeight } : {},
+              ]}
+              resizeMode="contain"
+            />
+          )}
+          <View style={styles.optionsContainer}>
+            {options.map((opt, index) => {
+  const isClicked = clickedOption === opt.name;
+  const isCorrect = opt.name === currentChord?.name;
+  const revealedCorrect = !isClicked && !!clickedOption && isCorrect; // correct but not clicked, and user already clicked wrong
+  const showWhiteText = isClicked || revealedCorrect;
 
-            return (
-              <Animated.View
-                key={index}
-                style={[
-                  { transform: [{ translateX: optionShake[index] }, { scale: optionScale[index] }] },
-                  styles.optionWrapper, // ✅ Added wrapper style
-                ]}>
-                <TouchableOpacity
-                  onPress={() => handleOptionClick(opt.name, index)}
-                  disabled={!!clickedOption}
-                  style={[
-                    styles.option,
-                    isClicked &&
-                      (isCorrect ? styles.correctOption : styles.wrongOption),
-                  ]}>
-                  <Text
-                    style={[
-                      styles.optionText,
-                      { color: isClicked ? '#fff' : '#000' },
-                    ]}>
-                    {opt.name}
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
-            );
-          })}
-        </View>
-
-        {/* Next Button */}
-        <TouchableOpacity
-          onPress={generateNewQuestion}
+  return (
+    <Animated.View
+      key={index}
+      style={[
+        { transform: [{ translateX: optionShake[index] }, { scale: optionScale[index] }] },
+        styles.optionWrapper,
+      ]}>
+      <TouchableOpacity
+        onPress={() => handleOptionClick(opt.name, index)}
+        disabled={!!clickedOption}
+        style={[
+          styles.option,
+          isClicked && (isCorrect ? styles.correctOption : styles.wrongOption),
+          revealedCorrect && styles.correctOption, // reveal the correct one when user already clicked wrong
+        ]}>
+        <Text
           style={[
-            styles.nextButton,
-            !clickedOption && styles.nextButtonDisabled,
-          ]}
-          disabled={!clickedOption}>
-          <Text style={styles.nextButtonText}>Next</Text>
-        </TouchableOpacity>
-      </View>
-      </ScrollView>
+            styles.optionText,
+            { color: showWhiteText ? '#fff' : '#000' }, // <-- use our boolean
+          ]}>
+          {opt.name}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+})}
 
+          </View>
+
+          {/* Next Button */}
+          <TouchableOpacity
+            onPress={generateNewQuestion}
+            style={[
+              styles.nextButton,
+              !clickedOption && styles.nextButtonDisabled,
+            ]}
+            disabled={!clickedOption}>
+            <Text style={styles.nextButtonText}>Next</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1},
+  container: { flex: 1 },
   toggleContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -221,15 +266,16 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start', // <-- stop stretching everything apart
     paddingVertical: 20,
   },
-chordImage: {
-  width: '80%',       // ✅ Width is 80% of parent
-  aspectRatio: 3 / 4, // ✅ Maintains aspect ratio (width:height)
-  resizeMode: 'contain',
-  marginVertical: 0,
-}, 
+  chordImage: {
+    width: screenWidth - horizontalMargin * 2,
+    maxHeight: screenHeight * 0.3, // <-- cap image height to ~45% of screen
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginVertical: 10,
+  },
   optionsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -255,11 +301,14 @@ chordImage: {
   wrongOption: { backgroundColor: '#dc3545' },
   optionText: { fontSize: 18, fontWeight: 'bold' },
   nextButton: {
-    width: '90%',
+    // remove width: '90%'
+    alignSelf: 'stretch', // <-- makes it fill parent's width
+    // marginHorizontal: horizontalMargin, // <-- gives same left/right padding as image
     padding: 15,
     backgroundColor: '#007BFF',
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 20,
     marginBottom: 20,
   },
   nextButtonDisabled: { backgroundColor: '#7CB5F2' },
