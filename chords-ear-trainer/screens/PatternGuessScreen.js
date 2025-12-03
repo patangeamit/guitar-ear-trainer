@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { chordPatternsByDifficulty } from '../data';
-
+import { ThemeContext } from '../ThemeContext';
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 const horizontalMargin = 20; // adjust however fancy you feel
@@ -21,7 +21,8 @@ export default function PatternGuessScreen() {
   const [selectedDifficulty, setSelectedDifficulty] = useState('Easy');
   const [clickedOption, setClickedOption] = useState(null);
   const [score, setScore] = useState(0);
-
+  const { theme } = React.useContext(ThemeContext);
+  const styles = createStyles(theme == 'dark');
   const chordPatterns = chordPatternsByDifficulty[selectedDifficulty];
 
   // inside component
@@ -168,49 +169,82 @@ export default function PatternGuessScreen() {
         {/* Main Content */}
         <View style={styles.content}>
           {currentChord && (
-            <Image
-              source={currentChord.image}
-              style={[
-                styles.chordImage,
-                imgHeight ? { height: imgHeight } : {},
-              ]}
-              resizeMode="contain"
-            />
+
+<View style={{ position: 'relative' }}>
+  <Image
+    source={currentChord.image}
+    style={[
+      styles.chordImage,
+      imgHeight ? { height: imgHeight } : {},
+    ]}
+    resizeMode="contain"
+  />
+
+  {/* Watermark overlay */}
+  <View
+    style={{
+      position: 'absolute',
+      top: '87%',   // adjust as needed
+      left: '50%',  // adjust as needed
+      transform: 'translateX(-50%)',
+      width: 60,    // adjust size
+      height: 10,
+      backgroundColor: 'rgba(0,0,0,1)', // cover-up color
+      borderRadius: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}
+  >
+  </View>
+</View>
+
           )}
           <View style={styles.optionsContainer}>
             {options.map((opt, index) => {
-  const isClicked = clickedOption === opt.name;
-  const isCorrect = opt.name === currentChord?.name;
-  const revealedCorrect = !isClicked && !!clickedOption && isCorrect; // correct but not clicked, and user already clicked wrong
-  const showWhiteText = isClicked || revealedCorrect;
+              const isClicked = clickedOption === opt.name;
+              const isCorrect = opt.name === currentChord?.name;
+              const revealedCorrect =
+                !isClicked && !!clickedOption && isCorrect; // correct but not clicked, and user already clicked wrong
+              const showWhiteText = isClicked || revealedCorrect;
 
-  return (
-    <Animated.View
-      key={index}
-      style={[
-        { transform: [{ translateX: optionShake[index] }, { scale: optionScale[index] }] },
-        styles.optionWrapper,
-      ]}>
-      <TouchableOpacity
-        onPress={() => handleOptionClick(opt.name, index)}
-        disabled={!!clickedOption}
-        style={[
-          styles.option,
-          isClicked && (isCorrect ? styles.correctOption : styles.wrongOption),
-          revealedCorrect && styles.correctOption, // reveal the correct one when user already clicked wrong
-        ]}>
-        <Text
-          style={[
-            styles.optionText,
-            { color: showWhiteText ? '#fff' : '#000' }, // <-- use our boolean
-          ]}>
-          {opt.name}
-        </Text>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-})}
-
+              return (
+                <Animated.View
+                  key={index}
+                  style={[
+                    {
+                      transform: [
+                        { translateX: optionShake[index] },
+                        { scale: optionScale[index] },
+                      ],
+                    },
+                    styles.optionWrapper,
+                  ]}>
+                  <TouchableOpacity
+                    onPress={() => handleOptionClick(opt.name, index)}
+                    disabled={!!clickedOption}
+                    style={[
+                      styles.option,
+                      isClicked &&
+                        (isCorrect ? styles.correctOption : styles.wrongOption),
+                      revealedCorrect && styles.correctOption, // reveal the correct one when user already clicked wrong
+                    ]}>
+                    <Text
+                      style={[
+                        styles.optionText,
+                        {
+                          color: showWhiteText
+                            ? '#fff'
+                            : theme == 'dark'
+                            ? '#eee'
+                            : '#111',
+                        }, // <-- use our boolean
+                      ]}>
+                      {opt.name}
+                    </Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              );
+            })}
           </View>
 
           {/* Next Button */}
@@ -229,88 +263,101 @@ export default function PatternGuessScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  toggleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 50,
-    padding: 5,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    alignSelf: 'center',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  toggleButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    marginHorizontal: 2,
-    borderRadius: 50,
-    backgroundColor: '#eee',
-  },
-  toggleButtonActive: { backgroundColor: '#007BFF' },
-  toggleText: { fontSize: 12, fontWeight: 'bold', color: '#333' },
-  toggleTextActive: { color: '#fff' },
-  scoreText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
-    color: '#333',
-  },
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-start', // <-- stop stretching everything apart
-    paddingVertical: 20,
-  },
-  chordImage: {
-    width: screenWidth - horizontalMargin * 2,
-    maxHeight: screenHeight * 0.3, // <-- cap image height to ~45% of screen
-    resizeMode: 'contain',
-    alignSelf: 'center',
-    marginVertical: 10,
-  },
-  optionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    width: '90%',
-    marginBottom: 10,
-  },
+const createStyles = (d) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: d ? '#111' : '#eee' },
+    toggleContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      backgroundColor: d ? '#222' : '#fff',
+      borderRadius: 50,
+      padding: 5,
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      alignSelf: 'center',
+      marginTop: 20,
+      marginBottom: 10,
+    },
+    toggleButton: {
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      marginHorizontal: 2,
+      borderRadius: 50,
+      backgroundColor: d ? '#333' : '#eee',
+    },
+    toggleButtonActive: { backgroundColor: '#007BFF' },
+    toggleText: {
+      fontSize: 12,
+      fontWeight: 'bold',
+      color: d ? '#eee' : '#333',
+    },
+    toggleTextActive: { color: '#fff' },
+    scoreText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      marginBottom: 10,
+      color: d ? '#ddd' : '#333',
+    },
+    content: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'flex-start', // <-- stop stretching everything apart
+      paddingVertical: 20,
+    },
+    chordImage: {
+      width: screenWidth - horizontalMargin * 2,
+      maxHeight: screenHeight * 0.3, // <-- cap image height to ~45% of screen
+      resizeMode: 'contain',
+      alignSelf: 'center',
+      marginVertical: 10,
+      tintColor: d ? 'white' : undefined,
+    },
+    optionsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      width: '90%',
+      marginBottom: 10,
+    },
 
-  optionWrapper: {
-    width: '45%', // ✅ Animated.View gets width
-    marginVertical: 10,
-  },
+    optionWrapper: {
+      width: '45%', // ✅ Animated.View gets width
+      marginVertical: 10,
+    },
 
-  option: {
-    width: '100%', // ✅ Touchable fills wrapper
-    padding: 15,
-    backgroundColor: '#ddd',
-    borderRadius: 8,
-    alignItems: 'center',
-  },
+    option: {
+      width: '100%', // ✅ Touchable fills wrapper
+      padding: 15,
+      borderRadius: 8,
+      alignItems: 'center',
+      backgroundColor: d ? '#444' : '#ddd',
+    },
 
-  correctOption: { backgroundColor: '#28a745' },
-  wrongOption: { backgroundColor: '#dc3545' },
-  optionText: { fontSize: 18, fontWeight: 'bold' },
-  nextButton: {
-    // remove width: '90%'
-    alignSelf: 'stretch', // <-- makes it fill parent's width
-    // marginHorizontal: horizontalMargin, // <-- gives same left/right padding as image
-    padding: 15,
-    backgroundColor: '#007BFF',
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  nextButtonDisabled: { backgroundColor: '#7CB5F2' },
-  nextButtonText: { fontSize: 20, color: '#fff', fontWeight: 'bold' },
-});
+    correctOption: { backgroundColor: '#28a745' },
+
+    wrongOption: { backgroundColor: '#dc3545' },
+    optionText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: d ? '#eee' : '#111',
+    },
+
+    nextButton: {
+      alignSelf: 'stretch', // <-- makes it fill parent's width
+      // marginHorizontal: horizontalMargin, // <-- gives same left/right padding as image
+      padding: 15,
+      backgroundColor: '#007BFF',
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 20,
+      marginBottom: 20,
+    },
+
+    nextButtonDisabled: { backgroundColor: '#7CB5F2' },
+
+    nextButtonText: { fontSize: 20, color: '#fff', fontWeight: 'bold' },
+  });
